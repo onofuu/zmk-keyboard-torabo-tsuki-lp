@@ -3,7 +3,16 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
-#include <dt-bindings/input/input-event-codes.h> // 追加：詳細な入力制御用
+#include <dt-bindings/input/input-event-codes.h>
+
+/* * ▼▼▼ ここが修正ポイント ▼▼▼
+ * 新しく作るのではなく、既存の「zip_xy_to_scroll_mapper」を上書きします。
+ * これで "lacks binding" エラーを回避できます。
+ * map = <Y軸  ホイール>; だけを指定し、X軸の記述を消すことで横スクロールを無効化します。
+ */
+&zip_xy_to_scroll_mapper {
+    map = <INPUT_REL_Y INPUT_REL_WHEEL>;
+};
 
 / {
     combos {
@@ -15,17 +24,6 @@
             layers = <2>;
         };
     };
-
-    /* ▼▼▼ 追加：縦スクロール専用のルールを作る ▼▼▼ */
-    zip_scroll_mapper_vertical: zip_scroll_mapper_vertical {
-        compatible = "zmk,input-processor-mapper";
-        #input-processor-cells = <0>;
-        type = <INPUT_EV_REL>;
-        /* Y軸(INPUT_REL_Y) を ホイール(INPUT_REL_WHEEL) に変換 */
-        /* X軸(INPUT_REL_X) の記述を省くことで横スクロールを無効化 */
-        map = <INPUT_REL_Y INPUT_REL_WHEEL>;
-    };
-    /* ▲▲▲ ここまで ▲▲▲ */
 
     keymap {
         compatible = "zmk,keymap";
@@ -79,7 +77,7 @@
 
     scroller {
         layers = <3>;
-        /* 作成した「縦専用」設定を使用する */
-        input-processors = <&zip_scroll_mapper_vertical>;
+        /* 上書きした標準マッパー（縦のみ）を使います */
+        input-processors = <&zip_xy_to_scroll_mapper>;
     };
 };
