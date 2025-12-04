@@ -5,16 +5,22 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/input/input-event-codes.h>
 
-/* * ▼▼▼ ここが修正ポイント ▼▼▼
- * 新しく作るのではなく、既存の「zip_xy_to_scroll_mapper」を上書きします。
- * これで "lacks binding" エラーを回避できます。
- * map = <Y軸  ホイール>; だけを指定し、X軸の記述を消すことで横スクロールを無効化します。
- */
+/* 1. 縦スクロール限定の設定 (前回のまま) */
 &zip_xy_to_scroll_mapper {
     map = <INPUT_REL_Y INPUT_REL_WHEEL>;
 };
 
 / {
+    /* 2. 追加：スクロール速度を遅くする設定 (Scaler) */
+    zip_scroll_scaler: zip_scroll_scaler {
+        compatible = "zmk,input-processor-scaler";
+        #input-processor-cells = <0>;
+        type = <INPUT_EV_REL>;
+        codes = <INPUT_REL_X>, <INPUT_REL_Y>;
+        track-remainders;
+        scale-divisor = <4>;  /* ← ここを <2> や <4> に変えて速度調整 */
+    };
+
     combos {
         compatible = "zmk,combos";
 
@@ -54,7 +60,7 @@
 &trans  &trans  &trans  &trans  &trans  &trans                          &kp HOME     &kp LEFT_ARROW  &kp UP_ARROW  &kp RIGHT_ARROW  &kp END        &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans          &kp PAGE_UP  &mkp LCLK       &kp DOWN_ARROW &mkp RCLK       &kp PAGE_DOWN  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans          &trans       &trans          &trans        &trans           &trans         &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp DELETE          &trans       &trans          &trans        &trans           &trans         &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans          &trans       &trans          &trans        &trans           &trans         &trans
             >;
         };
 
@@ -70,14 +76,14 @@
     };
 }; 
 
-/* トラックボールのスクロール設定 */
+/* 3. 設定の適用 */
 &trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
 
     scroller {
         layers = <3>;
-        /* 上書きした標準マッパー（縦のみ）を使います */
-        input-processors = <&zip_xy_to_scroll_mapper>;
+        /* 作成した減速機(scaler)を通してから、スクロール変換(mapper)へ渡す */
+        input-processors = <&zip_scroll_scaler &zip_xy_to_scroll_mapper>;
     };
 };
