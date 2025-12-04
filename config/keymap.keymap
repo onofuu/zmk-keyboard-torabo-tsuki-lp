@@ -6,7 +6,7 @@
 #include <dt-bindings/input/input-event-codes.h>
 
 / {
-    /* ▼▼▼ 追加：X軸(横)専用の速度調整設定 ▼▼▼ */
+    /* ▼▼▼ X軸(横)専用の設定 ▼▼▼ */
     zip_x_scaler: zip_x_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -14,7 +14,7 @@
         codes = <INPUT_REL_X>;
     };
 
-    /* ▼▼▼ 追加：Y軸(縦)専用の速度調整設定 ▼▼▼ */
+    /* ▼▼▼ Y軸(縦)専用の設定 ▼▼▼ */
     zip_y_scaler: zip_y_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -77,17 +77,16 @@
     };
 }; 
 
-/* ▼▼▼ 設定の適用 ▼▼▼ */
+/* ▼▼▼ ここで適用（カッコを追加しました） ▼▼▼ */
 &trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
 
     scroller {
         layers = <3>;
-        /* * zip_x_scaler -1 4  → 横は「-1(反転)」で「4(減速)」
-         * zip_y_scaler  1 4  → 縦は「1 (通常)」で「4(減速)」
-         * 最後に zip_xy_to_scroll_mapper でスクロールに変換
+        /* * zip_x_scaler (-1) 4 : 横は「-1(反転)」かつ「4(減速)」
+         * zip_y_scaler   1  4 : 縦は「1 (通常)」かつ「4(減速)」
          */
-        input-processors = <&zip_x_scaler -1 4>, <&zip_y_scaler 1 4>, <&zip_xy_to_scroll_mapper>;
+        input-processors = <&zip_x_scaler (-1) 4>, <&zip_y_scaler 1 4>, <&zip_xy_to_scroll_mapper>;
     };
 };
