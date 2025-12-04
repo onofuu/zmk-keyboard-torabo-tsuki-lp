@@ -5,23 +5,7 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/input/input-event-codes.h>
 
-/* 1. 縦スクロール限定の設定 (Mapperの上書き) */
-&zip_xy_to_scroll_mapper {
-    map = <INPUT_REL_Y INPUT_REL_WHEEL>;
-};
-
 / {
-    /* 2. スクロール速度を遅くする設定 (Scaler) */
-    zip_scroll_scaler: zip_scroll_scaler {
-        compatible = "zmk,input-processor-scaler";
-        #input-processor-cells = <0>;
-        type = <INPUT_EV_REL>;
-        /* ↓ 修正箇所: カンマを消して1つのカッコにまとめました */
-        codes = <INPUT_REL_X INPUT_REL_Y>;
-        track-remainders;
-        scale-divisor = <4>;  /* 速度調整: <1>等倍, <2>半分, <4>1/4 */
-    };
-
     combos {
         compatible = "zmk,combos";
 
@@ -77,13 +61,17 @@
     };
 }; 
 
-/* 3. 設定の適用 */
+/* ▼▼▼ ここで速度調整を適用します ▼▼▼ */
 &trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
 
     scroller {
         layers = <3>;
-        input-processors = <&zip_scroll_scaler &zip_xy_to_scroll_mapper>;
+        /* * zip_xy_scaler 1 4 : 移動量を「1/4」に減らします（減速）
+         * その後、zip_xy_to_scroll_mapper でスクロールに変換します
+         * 数値を <1 6> などにするとさらに遅くなります
+         */
+        input-processors = <&zip_xy_scaler 1 4>, <&zip_xy_to_scroll_mapper>;
     };
 };
